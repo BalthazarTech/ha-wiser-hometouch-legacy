@@ -1,0 +1,21 @@
+{
+  "title": "Wiser HomeTouch Legacy",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Wiser HomeTouch",
+        "description": "Local connection to a Schneider Electric Wiser HomeTouch CCT501510.",
+        "data": {
+          "host": "HomeTouch IP address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to communicate with the HomeTouch.",
+      "not_hometouch": "The device does not appear to be a compatible Wiser HomeTouch."
+    },
+    "abort": {
+      "already_configured": "This HomeTouch is already configured."
+    }
+  }
+}
