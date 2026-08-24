@@ -1,0 +1,23 @@
+create_user_moment:
+  name: Créer un scénario
+  description: Crée un nouveau scénario personnalisé dans les User Moments du Wiser HomeTouch.
+  fields:
+    name:
+      name: Nom
+      description: Nom du nouveau scénario à créer.
+      required: true
+      example: Vacances
+      selector:
+        text:
+
+delete_user_moment:
+  name: Supprimer un scénario
+  description: Supprime un scénario personnalisé des User Moments du Wiser HomeTouch.
+  fields:
+    name:
+      name: Nom
+      description: Nom exact du scénario personnalisé à supprimer.
+      required: true
+      example: Vacances
+      selector:
+        text:
