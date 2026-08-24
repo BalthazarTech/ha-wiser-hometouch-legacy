@@ -20,7 +20,15 @@ SERVICE_CREATE_USER_MOMENT = "create_user_moment"
 SERVICE_DELETE_USER_MOMENT = "delete_user_moment"
 ATTR_NAME = "name"
 
-SERVICE_SCHEMA = vol.Schema({vol.Required(ATTR_NAME): vol.All(str, vol.Strip, vol.Length(min=1, max=64))})
+SERVICE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_NAME): vol.All(
+            str,
+            lambda value: value.strip(),
+            vol.Length(min=1, max=64),
+        )
+    }
+)
 
 
 def _get_coordinator(hass: HomeAssistant) -> HomeTouchCoordinator:
@@ -73,11 +81,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
+    async def handle_create_user_moment(call: ServiceCall) -> None:
+        await _async_create_user_moment(hass, call)
+
+    async def handle_delete_user_moment(call: ServiceCall) -> None:
+        await _async_delete_user_moment(hass, call)
+
     if not hass.services.has_service(DOMAIN, SERVICE_CREATE_USER_MOMENT):
         hass.services.async_register(
             DOMAIN,
             SERVICE_CREATE_USER_MOMENT,
-            lambda call: _async_create_user_moment(hass, call),
+            handle_create_user_moment,
             schema=SERVICE_SCHEMA,
         )
 
@@ -85,7 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.services.async_register(
             DOMAIN,
             SERVICE_DELETE_USER_MOMENT,
-            lambda call: _async_delete_user_moment(hass, call),
+            handle_delete_user_moment,
             schema=SERVICE_SCHEMA,
         )
 
