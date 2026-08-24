@@ -8,10 +8,10 @@ Intégration personnalisée Home Assistant destinée à l'ancienne passerelle Sc
 
 - Communication locale avec le HomeTouch via son API HTTP OCF
 - Configuration depuis l'interface de Home Assistant
-- Sélecteur des **Basic Moments** :
-  - Home
-  - Away
-  - Sleep
+- Sélecteur des **Basic Moments** affichés en français :
+  - Maison
+  - Absent
+  - Nuit
 - Sélecteur des **User Moments**, avec détection dynamique des scénarios personnalisés
 - Pilotage bidirectionnel : les changements effectués sur le HomeTouch sont remontés dans Home Assistant et les sélections effectuées dans Home Assistant sont envoyées au HomeTouch
 - Fonctionnement entièrement local, sans dépendance au cloud Schneider
@@ -45,8 +45,18 @@ Renseigner l'adresse IP locale du HomeTouch.
 
 L'intégration crée actuellement deux entités `select` :
 
-- **Mode chauffage** — Basic Moments (`Home`, `Away`, `Sleep`)
+- **Mode chauffage** — Basic Moments affichés comme `Maison`, `Absent`, `Nuit`
 - **Scénario** — User Moments configurés sur le HomeTouch
+
+## Correspondance avec l'API du HomeTouch
+
+L'interface Home Assistant utilise les libellés français, tandis que l'API interne du HomeTouch conserve ses valeurs techniques :
+
+- `Maison` ↔ `Home`
+- `Absent` ↔ `Away`
+- `Nuit` ↔ `Sleep`
+
+Cette conversion est transparente pour l'utilisateur.
 
 ## Feuille de route
 
@@ -67,7 +77,7 @@ L'intégration utilise les ressources OCF locales exposées par le HomeTouch, no
 /ocf/sceneCollection/1
 ```
 
-`sceneCollection/0` contient les Basic Moments fixes (`Home`, `Away`, `Sleep`).
+`sceneCollection/0` contient les Basic Moments fixes (`Home`, `Away`, `Sleep`) utilisés en interne par l'API.
 
 `sceneCollection/1` contient les User Moments personnalisables.
 
