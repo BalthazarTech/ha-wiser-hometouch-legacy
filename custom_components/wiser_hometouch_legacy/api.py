@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from aiohttp import ClientError, ClientSession, ClientTimeout
 
@@ -25,6 +25,7 @@ class HomeTouchApi:
         self._session = session
         self._host = host
         self._base_url = f"http://{host}/ocf"
+        self._request_lock = asyncio.Lock()
 
     @property
     def host(self) -> str:
@@ -37,6 +38,7 @@ class HomeTouchApi:
         path: str,
         payload: dict[str, Any] | None = None,
     ) -> Any:
+        """Exécute une requête OCF en évitant les accès concurrents au HomeTouch."""
         headers = {
             "User-Agent": USER_AGENT,
             "Accept": "application/json",
@@ -45,20 +47,55 @@ class HomeTouchApi:
         if payload is not None:
             headers["Content-Type"] = "application/json"
 
-        try:
-            async with self._session.request(
-                method,
-                f"{self._base_url}{path}",
-                headers=headers,
-                json=payload,
-                timeout=ClientTimeout(total=8),
-            ) as response:
-                response.raise_for_status()
-                return await response.json(content_type=None)
-        except (asyncio.TimeoutError, ClientError, ValueError) as err:
-            raise HomeTouchConnectionError(
-                f"Impossible de communiquer avec le HomeTouch {self._host}: {err}"
-            ) from err
+        async with self._request_lock:
+            try:
+                async with self._session.request(
+                    method,
+                    f"{self._base_url}{path}",
+                    headers=headers,
+                    json=payload,
+                    timeout=ClientTimeout(total=8),
+                ) as response:
+                    response.raise_for_status()
+                    return await response.json(content_type=None)
+            except (asyncio.TimeoutError, ClientError, ValueError) as err:
+                raise HomeTouchConnectionError(
+                    f"Impossible de communiquer avec le HomeTouch {self._host}: {err}"
+                ) from err
+
+    async def _write_and_verify(
+        self,
+        method: str,
+        path: str,
+        payload: dict[str, Any],
+        verify: Callable[[], Awaitable[bool]],
+    ) -> dict[str, Any]:
+        """Écrit puis vérifie l'état réel si le HomeTouch répond mal ou trop lentement."""
+        last_error: HomeTouchConnectionError | None = None
+
+        for attempt in range(3):
+            try:
+                result = await self._request(method, path, payload)
+                await asyncio.sleep(0.35)
+                return result
+            except HomeTouchConnectionError as err:
+                last_error = err
+
+                # Le HomeTouch peut avoir appliqué la commande avant le timeout.
+                # On lui laisse un court délai, puis on vérifie l'état réel.
+                await asyncio.sleep(0.8 + attempt * 0.4)
+                try:
+                    if await verify():
+                        return {}
+                except HomeTouchConnectionError:
+                    pass
+
+                # Évite d'enchaîner immédiatement plusieurs écritures sur l'ancien serveur.
+                await asyncio.sleep(0.8 + attempt * 0.5)
+
+        if last_error is not None:
+            raise last_error
+        raise HomeTouchConnectionError("Écriture HomeTouch non confirmée")
 
     async def get_basic_moments(self) -> dict[str, Any]:
         """Retourne les Basic Moments."""
@@ -98,33 +135,57 @@ class HomeTouchApi:
         return {"basic": basic, "user": user}
 
     async def set_basic_moment(self, moment: str) -> dict[str, Any]:
-        """Active un Basic Moment."""
-        return await self._request(
+        """Active un Basic Moment et vérifie la consigne en cas de timeout."""
+
+        async def _verify() -> bool:
+            state = await self.get_basic_moments()
+            return state.get("lastScene") == moment
+
+        return await self._write_and_verify(
             "POST",
             "/sceneCollection/0",
             {"isIrrelevant": False, "lastScene": moment},
+            _verify,
         )
 
     async def set_user_moment(self, moment: str) -> dict[str, Any]:
-        """Active un User Moment."""
-        return await self._request(
+        """Active un User Moment et vérifie la consigne en cas de timeout."""
+
+        async def _verify() -> bool:
+            state = await self.get_user_moments()
+            return state.get("lastScene") == moment
+
+        return await self._write_and_verify(
             "POST",
             "/sceneCollection/1",
             {"isIrrelevant": False, "lastScene": moment},
+            _verify,
         )
 
     async def create_user_moment(self, moment: str) -> dict[str, Any]:
-        """Crée un User Moment."""
-        return await self._request(
+        """Crée un User Moment et vérifie sa présence en cas de timeout."""
+
+        async def _verify() -> bool:
+            state = await self.get_user_moments()
+            return moment in state.get("sceneValues", [])
+
+        return await self._write_and_verify(
             "POST",
             "/sceneCollection/1",
             {"sceneValues": [moment]},
+            _verify,
         )
 
     async def delete_user_moment(self, moment: str) -> dict[str, Any]:
-        """Supprime un User Moment."""
-        return await self._request(
+        """Supprime un User Moment et vérifie sa disparition en cas de timeout."""
+
+        async def _verify() -> bool:
+            state = await self.get_user_moments()
+            return moment not in state.get("sceneValues", [])
+
+        return await self._write_and_verify(
             "DELETE",
             "/sceneCollection/1",
             {"sceneValues": [moment]},
+            _verify,
         )
