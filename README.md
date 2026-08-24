@@ -1,65 +1,65 @@
-# Wiser HomeTouch Legacy for Home Assistant
+# Wiser HomeTouch Legacy pour Home Assistant
 
-Custom Home Assistant integration for the legacy Schneider Electric **Wiser HomeTouch CCT501510**.
+Intégration personnalisée Home Assistant destinée à l'ancienne passerelle Schneider Electric **Wiser HomeTouch CCT501510**.
 
-> This project is community-maintained and is not affiliated with or endorsed by Schneider Electric.
+> Ce projet est maintenu par la communauté. Il n'est ni affilié à Schneider Electric, ni approuvé officiellement par Schneider Electric.
 
-## Current features
+## Fonctionnalités actuelles
 
-- Local communication with the HomeTouch over its OCF HTTP API
-- UI configuration through Home Assistant
-- Basic Moments selector:
+- Communication locale avec le HomeTouch via son API HTTP OCF
+- Configuration depuis l'interface de Home Assistant
+- Sélecteur des **Basic Moments** :
   - Home
   - Away
   - Sleep
-- User Moments selector with dynamically discovered custom moments
-- Bidirectional control: changes made on the HomeTouch are reflected in Home Assistant, and selections made in Home Assistant are sent back to the HomeTouch
-- Local polling only; no Schneider cloud dependency
+- Sélecteur des **User Moments**, avec détection dynamique des scénarios personnalisés
+- Pilotage bidirectionnel : les changements effectués sur le HomeTouch sont remontés dans Home Assistant et les sélections effectuées dans Home Assistant sont envoyées au HomeTouch
+- Fonctionnement entièrement local, sans dépendance au cloud Schneider
 
-## Tested hardware
+## Matériel testé
 
 - Schneider Electric Wiser HomeTouch **CCT501510**
-- HomeTouch firmware observed during development: **8.4.2-2737**
+- Firmware HomeTouch observé pendant le développement : **8.4.2-2737**
 
-## Installation (manual)
+## Installation manuelle
 
-Copy the directory:
+Copier le dossier :
 
 ```text
 custom_components/wiser_hometouch_legacy
 ```
 
-into:
+dans :
 
 ```text
 /config/custom_components/
 ```
 
-Restart Home Assistant, then go to:
+Redémarrer Home Assistant, puis aller dans :
 
-**Settings → Devices & services → Add integration → Wiser HomeTouch Legacy**
+**Paramètres → Appareils et services → Ajouter une intégration → Wiser HomeTouch Legacy**
 
-Enter the local IP address of the HomeTouch.
+Renseigner l'adresse IP locale du HomeTouch.
 
-## Entities
+## Entités
 
-The integration currently creates two `select` entities:
+L'intégration crée actuellement deux entités `select` :
 
-- **Heating mode** — Basic Moments (`Home`, `Away`, `Sleep`)
-- **Scenario** — User Moments configured on the HomeTouch
+- **Mode chauffage** — Basic Moments (`Home`, `Away`, `Sleep`)
+- **Scénario** — User Moments configurés sur le HomeTouch
 
-## Roadmap
+## Feuille de route
 
-- Create User Moments from Home Assistant
-- Delete User Moments from Home Assistant
-- Better retry / resilience handling for older HomeTouch HTTP stacks
+- Création des User Moments depuis Home Assistant
+- Suppression des User Moments depuis Home Assistant
+- Amélioration de la tolérance aux délais d'attente et aux réponses irrégulières de l'ancien serveur HTTP du HomeTouch
 - Diagnostics
-- Discovery and read-only support for devices still paired to HomeTouch
-- Future exploration of thermostat control through HomeTouch for users who retain their legacy Wiser Zigbee network
+- Découverte des appareils encore associés au HomeTouch et prise en charge en lecture
+- Étude du pilotage des thermostats via le HomeTouch pour les utilisateurs souhaitant conserver leur ancien réseau Zigbee Wiser
 
-## Technical notes
+## Notes techniques
 
-The integration uses the local OCF resources exposed by the HomeTouch, including:
+L'intégration utilise les ressources OCF locales exposées par le HomeTouch, notamment :
 
 ```text
 /ocf/oic/resx?if=oic.if.b
@@ -67,8 +67,10 @@ The integration uses the local OCF resources exposed by the HomeTouch, including
 /ocf/sceneCollection/1
 ```
 
-`sceneCollection/0` contains the fixed Basic Moments. `sceneCollection/1` contains User Moments.
+`sceneCollection/0` contient les Basic Moments fixes (`Home`, `Away`, `Sleep`).
 
-## License
+`sceneCollection/1` contient les User Moments personnalisables.
+
+## Licence
 
 MIT
