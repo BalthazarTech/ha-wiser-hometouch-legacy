@@ -17,5 +17,20 @@
     "abort": {
       "already_configured": "Ce HomeTouch est déjà configuré."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configurer Wiser HomeTouch",
+        "description": "Modifiez l’adresse IP utilisée par Home Assistant. La connexion est vérifiée avant l’enregistrement.",
+        "data": {
+          "host": "Adresse IP du HomeTouch"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de communiquer avec cette adresse IP.",
+      "not_hometouch": "L’appareil à cette adresse ne semble pas être un Wiser HomeTouch compatible."
+    }
   }
 }
