@@ -73,20 +73,13 @@ async def _async_delete_user_moment(hass: HomeAssistant, call: ServiceCall) -> N
     await coordinator.async_request_refresh()
 
 
-async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Recharge l'intégration lorsqu'une option est modifiée."""
-    await hass.config_entries.async_reload(entry.entry_id)
-
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Configure Wiser HomeTouch Legacy depuis une entrée de configuration."""
-    host = entry.options.get(CONF_HOST, entry.data[CONF_HOST])
-    api = HomeTouchApi(async_get_clientsession(hass), host)
+    api = HomeTouchApi(async_get_clientsession(hass), entry.data[CONF_HOST])
     coordinator = HomeTouchCoordinator(hass, api)
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
-    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 
     async def handle_create_user_moment(call: ServiceCall) -> None:
         await _async_create_user_moment(hass, call)
