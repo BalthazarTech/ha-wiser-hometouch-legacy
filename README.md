@@ -8,6 +8,8 @@ Intégration personnalisée Home Assistant destinée à l'ancienne passerelle Sc
 
 - Communication locale avec le HomeTouch via son API HTTP OCF
 - Configuration depuis l'interface de Home Assistant
+- Modification de l'adresse IP du HomeTouch depuis **Reconfigurer**, sans supprimer l'intégration ni recréer les entités
+- Vérification de la nouvelle adresse IP avant enregistrement
 - Sélecteur des **Basic Moments** affichés en français :
   - Maison
   - Absent
@@ -46,6 +48,14 @@ Redémarrer Home Assistant, puis aller dans :
 **Paramètres → Appareils et services → Ajouter une intégration → Wiser HomeTouch Legacy**
 
 Renseigner l'adresse IP locale du HomeTouch.
+
+### Modifier l'adresse IP après l'installation
+
+Si le HomeTouch reçoit une nouvelle adresse IP, il n'est pas nécessaire de supprimer puis réinstaller l'intégration.
+
+Dans **Paramètres → Appareils et services → Wiser HomeTouch Legacy**, ouvrir le menu de l'entrée puis choisir **Reconfigurer**. Saisir la nouvelle adresse IP. Home Assistant vérifie qu'un HomeTouch compatible répond à cette adresse, enregistre la modification puis recharge automatiquement l'intégration.
+
+Les entités et les automatisations existantes sont conservées.
 
 ## Entités
 
