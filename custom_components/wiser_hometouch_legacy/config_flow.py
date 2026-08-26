@@ -66,25 +66,11 @@ class HomeTouchConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    @staticmethod
-    def async_get_options_flow(config_entry):
-        """Retourne le flux d'options de l'intégration."""
-        return HomeTouchOptionsFlow(config_entry)
-
-
-class HomeTouchOptionsFlow(config_entries.OptionsFlow):
-    """Permet de modifier les paramètres d'un HomeTouch configuré."""
-
-    def __init__(self, config_entry) -> None:
-        self._config_entry = config_entry
-
-    async def async_step_init(self, user_input=None):
-        """Modifie l'adresse IP du HomeTouch."""
+    async def async_step_reconfigure(self, user_input=None):
+        """Permet de modifier l'adresse IP d'un HomeTouch existant."""
         errors = {}
-        current_host = self._config_entry.options.get(
-            CONF_HOST,
-            self._config_entry.data[CONF_HOST],
-        )
+        entry = self._get_reconfigure_entry()
+        current_host = entry.data[CONF_HOST]
 
         if user_input is not None:
             host = user_input[CONF_HOST].strip()
@@ -92,13 +78,14 @@ class HomeTouchOptionsFlow(config_entries.OptionsFlow):
             if error:
                 errors["base"] = error
             else:
-                return self.async_create_entry(
-                    title="",
-                    data={CONF_HOST: host},
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates={CONF_HOST: host},
+                    title=f"Wiser HomeTouch ({host})",
                 )
 
         return self.async_show_form(
-            step_id="init",
+            step_id="reconfigure",
             data_schema=vol.Schema(
                 {
                     vol.Required(
